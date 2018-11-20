@@ -8,16 +8,12 @@ import android.bluetooth.BluetoothGattService;
 import android.bluetooth.BluetoothProfile;
 import android.util.Log;
 
-import com.ceg.med.beatheartfactory.data.ByteReader;
-import com.ceg.med.beatheartfactory.data.CallbackAble;
-
 import java.util.LinkedList;
 import java.util.Queue;
 import java.util.UUID;
 
 import static android.bluetooth.BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE;
-import static com.ceg.med.beatheartfactory.activity.MainActivity.HEALTH_CONNECT_LOG_TAG;
-import static com.ceg.med.beatheartfactory.activity.MainActivity.HEALTH_CONNECT_LOG_TAG;
+import static com.ceg.med.beatheartfactory.activity.MainActivity.BEATH_HEART_FACTORY_LOG_TAG;
 
 public class NiniGattCallback extends BluetoothGattCallback {
     /**
@@ -41,14 +37,14 @@ public class NiniGattCallback extends BluetoothGattCallback {
     @Override
     public void onConnectionStateChange(BluetoothGatt gatt, int status, int newState) {
         super.onConnectionStateChange(gatt, status, newState);
-        Log.d(HEALTH_CONNECT_LOG_TAG, "onConnectionStateChange: " + status + " -> " + newState);
+        Log.d(BEATH_HEART_FACTORY_LOG_TAG, "onConnectionStateChange: " + status + " -> " + newState);
         if (newState == BluetoothProfile.STATE_CONNECTED) {
             // GATT Connected
             // Searching GATT Service
             gatt.discoverServices();
         } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
             // GATT Disconnected
-            Log.d(HEALTH_CONNECT_LOG_TAG, "Bluetooth Disconnected");
+            Log.d(BEATH_HEART_FACTORY_LOG_TAG, "Bluetooth Disconnected");
         }
     }
 
@@ -61,12 +57,12 @@ public class NiniGattCallback extends BluetoothGattCallback {
     @Override
     public void onServicesDiscovered(BluetoothGatt gatt, int status) {
         super.onServicesDiscovered(gatt, status);
-        Log.d(HEALTH_CONNECT_LOG_TAG, "onServicesDiscovered received: " + status);
+        Log.d(BEATH_HEART_FACTORY_LOG_TAG, "onServicesDiscovered received: " + status);
         if (status == BluetoothGatt.GATT_SUCCESS) {
             BluetoothGattService bluetoothGattService = gatt.getService(UUID.fromString(NINI_SEND_PRESSURE));
-            Log.d(HEALTH_CONNECT_LOG_TAG, "service: " + bluetoothGattService.getUuid().toString());
+            Log.d(BEATH_HEART_FACTORY_LOG_TAG, "service: " + bluetoothGattService.getUuid().toString());
             BluetoothGattCharacteristic characteristic = bluetoothGattService.getCharacteristic(UUID.fromString(SEND_DATA));
-            Log.d(HEALTH_CONNECT_LOG_TAG, "characteristic: " + characteristic.getUuid().toString());
+            Log.d(BEATH_HEART_FACTORY_LOG_TAG, "characteristic: " + characteristic.getUuid().toString());
             boolean b = gatt.setCharacteristicNotification(characteristic, true);
             if (b) {
                 for (BluetoothGattDescriptor bluetoothGattDescriptor : characteristic.getDescriptors()) {
@@ -108,7 +104,7 @@ public class NiniGattCallback extends BluetoothGattCallback {
 
     public static void set(CallbackAble<Integer> callback) {
         callbackAble = callback;
-        Log.d(HEALTH_CONNECT_LOG_TAG, "SET CALLBACK " + callback.toString());
+        Log.d(BEATH_HEART_FACTORY_LOG_TAG, "SET CALLBACK " + callback.toString());
     }
 
 }

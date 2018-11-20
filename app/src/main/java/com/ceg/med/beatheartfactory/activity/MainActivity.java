@@ -37,7 +37,8 @@ import static com.ceg.med.beatheartfactory.activity.DetailActivity.PARAMETER_MAC
  */
 public class MainActivity extends AppCompatActivity {
 
-    public static final String HEALTH_CONNECT_LOG_TAG = "HealthConnect";
+    public static final String BEATH_HEART_FACTORY_LOG_TAG = "BeartHeartFactory";
+
     public static String ID;
 
     // intent code for enabling Bluetooth
@@ -200,7 +201,7 @@ public class MainActivity extends AppCompatActivity {
         String msg = "name=" + device.getName() + ", bondStatus="
                 + device.getBondState() + ", address="
                 + device.getAddress() + ", type" + device.getType();
-        Log.d(HEALTH_CONNECT_LOG_TAG, msg);
+        Log.d(BEATH_HEART_FACTORY_LOG_TAG, msg);
 
         if (!knownAddresses.contains(device.getAddress())) { //&& device.getType() == MYO_DEVICE_TYPE) {
             knownAddresses.add(device.getAddress());

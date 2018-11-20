@@ -28,7 +28,7 @@ public class DetailActivity extends AppCompatActivity implements CallbackAble<In
     private ProgressBar connectionBar;
     private BluetoothGatt bluetoothGatt;
     private ProgressBar bar;
-    private int maxVal;
+    public static int maxVal;
 
     private NiniGattCallback niniGattCallback;
 
@@ -41,7 +41,7 @@ public class DetailActivity extends AppCompatActivity implements CallbackAble<In
         BluetoothDevice bluetoothDevice = i.getExtras().getParcelable(PARAMETER_BLUETOOTH_DEVICE);
 
         ImageView imageView = findViewById(R.id.first_image);
-        imageView.setImageDrawable(getDrawable(R.drawable.flappy));
+        imageView.setImageDrawable(getDrawable(R.drawable.rk));
         imageView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {

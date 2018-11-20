@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">healthConnect</string>
+    <string name="app_name">beatHeartFactory</string>
     <string name="healthConnectImage">Health Connect Image</string>
     <string name="myo_band_image">image</string>
     <string name="action_rescan">rescan</string>

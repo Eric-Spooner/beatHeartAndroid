@@ -4,10 +4,10 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 
-import com.ceg.med.beatheartfactory.UnityPlayerActivity;
 import com.ceg.med.beatheartfactory.data.CallbackAble;
 import com.ceg.med.beatheartfactory.data.NiniGattCallback;
 import com.unity3d.player.UnityPlayer;
+import com.unity3d.player.UnityPlayerActivity;
 
 import static com.ceg.med.beatheartfactory.activity.MainActivity.BEATH_HEART_FACTORY_LOG_TAG;
 
@@ -34,7 +34,9 @@ public class BeatHeartPlayerActivity extends UnityPlayerActivity implements Call
         }
     }
 
-
+    @Unity
+    public void startGame(String jsonUnity) {
+    }
 
     @Override
     public void callback(Integer value) {
@@ -43,7 +45,7 @@ public class BeatHeartPlayerActivity extends UnityPlayerActivity implements Call
             sendValue(0);
         } else if (value > 5) {
             active = true;
-            sendValue(((int)((float)value/DetailActivity.maxVal * 100)));
+            sendValue(((int) ((float) value / DetailActivity.maxVal * 100)));
         }
     }
 

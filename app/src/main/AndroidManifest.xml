@@ -32,13 +32,13 @@
                 <category android:name="android.intent.category.BROWSABLE" />
             </intent-filter>
         </activity>
-        <activity
-            android:name="com.ceg.med.beatheartfactory.activity.DetailActivity"/>
+        <activity android:name="com.ceg.med.beatheartfactory.activity.DetailActivity"/>
         <activity
             android:name="com.ceg.med.beatheartfactory.activity.BeatHeartPlayerActivity"
             android:configChanges="mcc|mnc|locale|touchscreen|keyboard|keyboardHidden|navigation|orientation|screenLayout|uiMode|screenSize|smallestScreenSize|fontScale|layoutDirection|density"
             android:label="@string/app_name"
             android:isGame="true">
+
             <!--<intent-filter>-->
             <!--<action android:name="android.intent.action.MAIN" />-->
             <!--<category android:name="android.intent.category.LAUNCHER" />-->

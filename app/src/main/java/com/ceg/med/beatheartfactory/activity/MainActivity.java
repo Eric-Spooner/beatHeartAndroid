@@ -38,6 +38,7 @@ import static com.ceg.med.beatheartfactory.activity.DetailActivity.PARAMETER_MAC
 public class MainActivity extends AppCompatActivity {
 
     public static final String BEATH_HEART_FACTORY_LOG_TAG = "BeartHeartFactory";
+    public static final String USER_PARAMETER = "USER";
 
     public static String ID;
 

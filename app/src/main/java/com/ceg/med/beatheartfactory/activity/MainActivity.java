@@ -77,7 +77,7 @@ public class MainActivity extends AppCompatActivity {
 //        this.getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
         ImageView imageView = findViewById(R.id.first_image);
-        imageView.setImageDrawable(getDrawable(R.mipmap.hctr));
+        imageView.setImageDrawable(getDrawable(R.drawable.beatheartlogo));
 
         ListView listView = findViewById(R.id.list_view);
         adapter = new MyoListAdapter(listItems, this);

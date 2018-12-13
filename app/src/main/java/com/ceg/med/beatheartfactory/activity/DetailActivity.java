@@ -50,6 +50,9 @@ public class DetailActivity extends AppCompatActivity implements CallbackAble<In
             }
         });
 
+        ImageView beatHeartLogo = findViewById(R.id.beatHeartLogo);
+        beatHeartLogo.setImageDrawable(getDrawable(R.drawable.beatheartlogo));
+
         Toolbar myToolbar = findViewById(R.id.myo_toolbar);
         myToolbar.setNavigationIcon(R.drawable.ic_keyboard_backspace_black_24dp);
         setSupportActionBar(myToolbar);

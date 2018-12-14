@@ -204,8 +204,13 @@ public class MainActivity extends AppCompatActivity {
         Log.d(BEATH_HEART_FACTORY_LOG_TAG, msg);
 
         if (!knownAddresses.contains(device.getAddress())) { //&& device.getType() == MYO_DEVICE_TYPE) {
-            knownAddresses.add(device.getAddress());
-            addItems(device.getName() != null ? device.getName() : "unknown", device.getAddress(), device, scanResult.getScanRecord());
+            if(knownAddresses.size() == 0 && device.getName() == null) {
+                knownAddresses.add(device.getAddress());
+                addItems(device.getName() != null ? device.getName() : "unknown", device.getAddress(), device, scanResult.getScanRecord());
+            }else if (device.getName() != null) {
+                knownAddresses.add(device.getAddress());
+                addItems(device.getName(), device.getAddress(), device, scanResult.getScanRecord());
+            }
         }
     }
 

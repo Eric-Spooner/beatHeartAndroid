@@ -54,10 +54,10 @@ public class MyoListAdapter extends BaseAdapter {
         }
         holder.titleView.setText(listData.get(position).getName());
         holder.descriptionView.setText(listData.get(position).getMacAdress());
-        if (listData.get(position).getScanRecord() != null) {
-            holder.imaveView.setImageDrawable(getDrawable(convertView.getContext(), R.mipmap.hc));
+        if (listData.get(position).getName().equals("weixin-nini")) {
+            holder.imaveView.setImageDrawable(getDrawable(convertView.getContext(), R.drawable.nini));
         } else {
-            holder.imaveView.setImageDrawable(getDrawable(convertView.getContext(), R.mipmap.hc));
+            holder.imaveView.setImageDrawable(getDrawable(convertView.getContext(), R.mipmap.healthc));
         }
         return convertView;
     }

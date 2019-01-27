@@ -78,10 +78,17 @@ public class NiniGattCallback extends BluetoothGattCallback {
         byte[] emg_data = characteristic.getValue();
         ByteReader byteReader = new ByteReader();
         byteReader.setByteData(emg_data);
-//        String value = String.format("%02X %02X %02X", emg_data[2] - 0x30, emg_data[3] - 0x30, emg_data[5] - 0x30);
-        int val = (emg_data[5] - 0x30) + (emg_data[3] - 0x30) * 10;
+        //String value = String.format("%d %d %d %d",emg_data[2],emg_data[3],emg_data[4],emg_data[5]);
+        int val;
+
+        val = (emg_data[3] - 40)*100 + (emg_data[4]-40)*10 + (emg_data[5]-40) - 868;
+        if(emg_data[5] == 46){
+           val = val + 909;
+        }
+        val = (int)((val/1700.0f) * 100.0f);
+        val = val > 100 ? 100 : val < 0 ? 0 : val;
+        System.out.println(val);
         callbackAble.callback(val);
-//        Log.d("NEW VALUE: ", "value: " + value + " :int: " + val);
     }
 
     /**

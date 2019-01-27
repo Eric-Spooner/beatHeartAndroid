@@ -13,7 +13,7 @@ import static com.ceg.med.beatheartfactory.activity.MainActivity.BEATH_HEART_FAC
 
 public class BeatHeartPlayerActivity extends UnityPlayerActivity implements CallbackAble<Integer> {
 
-    private boolean active;
+    private int active;
 
     public static BeatHeartPlayerActivity currentActivity;
 
@@ -24,7 +24,7 @@ public class BeatHeartPlayerActivity extends UnityPlayerActivity implements Call
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        active = false;
+        active = 0;
         currentActivity = this;
         Intent intent = getIntent();
         try {
@@ -40,12 +40,13 @@ public class BeatHeartPlayerActivity extends UnityPlayerActivity implements Call
 
     @Override
     public void callback(Integer value) {
-        if (active && value < 5) {
-            active = false;
+        int normVal = ((int) ((float) value / DetailActivity.maxVal * 100));
+        if (normVal < 30) {
+            active = 0;
             sendValue(0);
-        } else if (value > 5) {
-            active = true;
-            sendValue(((int) ((float) value / DetailActivity.maxVal * 100)));
+        } else if (active < 5 && normVal > 30) {
+            active++;
+            sendValue(normVal);
         }
     }
 

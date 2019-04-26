@@ -11,7 +11,7 @@ import com.unity3d.player.UnityPlayerActivity;
 
 import static com.ceg.med.beatheartfactory.activity.MainActivity.BEATH_HEART_FACTORY_LOG_TAG;
 
-public class BeatHeartPlayerActivity extends UnityPlayerActivity implements CallbackAble<Integer> {
+public class BeatHeartPlayerActivity extends UnityPlayerActivity implements CallbackAble<Integer, String> {
 
     private int active;
 
@@ -39,8 +39,12 @@ public class BeatHeartPlayerActivity extends UnityPlayerActivity implements Call
     }
 
     @Override
-    public void callback(Integer value) {
-        int normVal = ((int) ((float) value / DetailActivity.maxVal * 100));
+    public void callback(Integer value, String id) {
+        // Cap the value
+        value = value > 70 ? 70 : value;
+        //use a max val of 70
+        //int normVal = ((int) ((float) value / DetailActivity.maxVal * 100));
+        int normVal = ((int) ((float) value / 70 * 100));
         if (normVal < 30) {
             active = 0;
             sendValue(0);

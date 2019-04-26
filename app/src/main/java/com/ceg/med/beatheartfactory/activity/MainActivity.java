@@ -2,6 +2,7 @@ package com.ceg.med.beatheartfactory.activity;
 
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
+import android.bluetooth.BluetoothGatt;
 import android.bluetooth.BluetoothManager;
 import android.bluetooth.le.ScanCallback;
 import android.bluetooth.le.ScanRecord;
@@ -20,22 +21,21 @@ import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.ProgressBar;
 
+import com.ceg.med.beatheartfactory.R;
+import com.ceg.med.beatheartfactory.data.CallbackAble;
+import com.ceg.med.beatheartfactory.data.NiniGattCallback;
 import com.ceg.med.beatheartfactory.list.MyoListAdapter;
 import com.ceg.med.beatheartfactory.list.MyoListItem;
-import com.ceg.med.beatheartfactory.R;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-import static com.ceg.med.beatheartfactory.activity.DetailActivity.PARAMETER_BLUETOOTH_DEVICE;
-import static com.ceg.med.beatheartfactory.activity.DetailActivity.PARAMETER_MAC;
-
 /**
  * The main activity.
  */
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements CallbackAble<Integer, String> {
 
     public static final String BEATH_HEART_FACTORY_LOG_TAG = "BeartHeartFactory";
 
@@ -45,7 +45,7 @@ public class MainActivity extends AppCompatActivity {
     private static final int REQUEST_ENABLE_BT = 1;
 
     // device scanning time in ms
-    private static final long SCAN_PERIOD = 10000;
+    private static final long SCAN_PERIOD = 900000;
 
     private ArrayList<MyoListItem> listItems = new ArrayList<>();
     private List<String> knownAddresses = new ArrayList<>();
@@ -81,7 +81,7 @@ public class MainActivity extends AppCompatActivity {
 
         ListView listView = findViewById(R.id.list_view);
         adapter = new MyoListAdapter(listItems, this);
-        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+       /* listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 MyoListItem item = (MyoListItem) adapter.getItem(position);
@@ -89,20 +89,18 @@ public class MainActivity extends AppCompatActivity {
                 connectAndContinue(item);
             }
         });
-
+*/
         listView.setAdapter(adapter);
     }
 
     /**
      * Connects a selected Myo and continues to the next view
      *
-     * @param item {@link MyoListItem} to connect to.
      */
-    private void connectAndContinue(MyoListItem item) {
-        Intent nextScreen = new Intent(getApplicationContext(), DetailActivity.class);
-        nextScreen.putExtra(PARAMETER_MAC, item.getMacAdress());
-        nextScreen.putExtra(PARAMETER_BLUETOOTH_DEVICE, item.getDevice());
-        startActivity(nextScreen);
+    private void connectAndContinue(BluetoothDevice device) {
+        NiniGattCallback niniGattCallback = new NiniGattCallback(this, device.getAddress());
+        BluetoothGatt bluetoothGatt = device.connectGatt(this, false, niniGattCallback);
+        niniGattCallback.setBluetoothGatt(bluetoothGatt);
     }
 
     @Override
@@ -203,19 +201,22 @@ public class MainActivity extends AppCompatActivity {
                 + device.getAddress() + ", type" + device.getType();
         Log.d(BEATH_HEART_FACTORY_LOG_TAG, msg);
 
-        if (!knownAddresses.contains(device.getAddress())) { //&& device.getType() == MYO_DEVICE_TYPE) {
-            if(knownAddresses.size() == 0 && device.getName() == null) {
-                knownAddresses.add(device.getAddress());
-                addItems(device.getName() != null ? device.getName() : "unknown", device.getAddress(), device, scanResult.getScanRecord());
-            }else if (device.getName() != null) {
-                knownAddresses.add(device.getAddress());
-                addItems(device.getName(), device.getAddress(), device, scanResult.getScanRecord());
-            }
+        if (device.getName() != null && !knownAddresses.contains(device.getAddress()) && device.getName().equals("weixin-nini")) {
+            knownAddresses.add(device.getAddress());
+            addItems(device.getName(), device.getAddress(), device, scanResult.getScanRecord());
+            connectAndContinue(device);
         }
     }
 
     public static String getTimestamp() {
         return new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date());
+    }
+
+    @Override
+    public void callback(Integer value, String id) {
+        // Check if the user presses the ball to determine if it should be connected
+        Intent i = new Intent(getApplicationContext(), BeatHeartPlayerActivity.class);
+        startActivity(i);
     }
 
 }

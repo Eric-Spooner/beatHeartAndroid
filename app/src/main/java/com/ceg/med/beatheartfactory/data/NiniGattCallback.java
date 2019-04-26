@@ -27,11 +27,13 @@ public class NiniGattCallback extends BluetoothGattCallback {
     private Queue<BluetoothGattDescriptor> descriptorWriteQueue = new LinkedList<BluetoothGattDescriptor>();
 
     private BluetoothGatt bluetoothGatt;
+    private String id;
 
-    private static CallbackAble<Integer> callbackAble;
+    private static CallbackAble<Integer, String> callbackAble;
 
-    public NiniGattCallback(CallbackAble<Integer> callback) {
+    public NiniGattCallback(CallbackAble<Integer, String> callback, String id) {
         callbackAble = callback;
+        this.id = id;
     }
 
     @Override
@@ -86,9 +88,9 @@ public class NiniGattCallback extends BluetoothGattCallback {
            val = val + 909;
         }
         val = (int)((val/1700.0f) * 100.0f);
-        val = val > 100 ? 100 : val < 0 ? 0 : val;
+        val = val > 100 ? 100 : val < 5.5 ? 0 : val;
         System.out.println(val);
-        callbackAble.callback(val);
+        callbackAble.callback(val, id);
     }
 
     /**
@@ -109,7 +111,7 @@ public class NiniGattCallback extends BluetoothGattCallback {
         bluetoothGatt = gatt;
     }
 
-    public static void set(CallbackAble<Integer> callback) {
+    public static void set(CallbackAble<Integer, String> callback) {
         callbackAble = callback;
         Log.d(BEATH_HEART_FACTORY_LOG_TAG, "SET CALLBACK " + callback.toString());
     }

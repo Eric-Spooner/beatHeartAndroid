@@ -1,29 +1,25 @@
 package com.ceg.med.beatheartfactory.activity;
 
-import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
-import android.bluetooth.BluetoothGatt;
 import android.bluetooth.BluetoothManager;
 import android.bluetooth.le.ScanCallback;
 import android.bluetooth.le.ScanRecord;
 import android.bluetooth.le.ScanResult;
 import android.content.Intent;
 import android.os.Bundle;
-import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.AdapterView;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.ProgressBar;
 
 import com.ceg.med.beatheartfactory.R;
+import com.ceg.med.beatheartfactory.controller.BeatHeartBluetoothController;
 import com.ceg.med.beatheartfactory.data.CallbackAble;
-import com.ceg.med.beatheartfactory.data.NiniGattCallback;
 import com.ceg.med.beatheartfactory.list.MyoListAdapter;
 import com.ceg.med.beatheartfactory.list.MyoListItem;
 
@@ -44,19 +40,14 @@ public class MainActivity extends AppCompatActivity implements CallbackAble<Inte
     // intent code for enabling Bluetooth
     private static final int REQUEST_ENABLE_BT = 1;
 
-    // device scanning time in ms
-    private static final long SCAN_PERIOD = 900000;
 
     private ArrayList<MyoListItem> listItems = new ArrayList<>();
     private List<String> knownAddresses = new ArrayList<>();
     private MyoListAdapter adapter;
-    private BluetoothAdapter bluetoothAdapter;
-    private ScanCallback scanCallback;
-    private Handler bluetoothScanHandler;
-
     private ProgressBar searchingBar;
-
     private String savedMyoMac;
+
+    private BeatHeartBluetoothController beatHeartBluetoothController;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -64,10 +55,25 @@ public class MainActivity extends AppCompatActivity implements CallbackAble<Inte
         setContentView(R.layout.activity_main);
         init();
         BluetoothManager mBluetoothManager = (BluetoothManager) getSystemService(BLUETOOTH_SERVICE);
-        bluetoothAdapter = mBluetoothManager.getAdapter();
-        bluetoothScanHandler = new Handler();
+        beatHeartBluetoothController = new BeatHeartBluetoothController(mBluetoothManager, this);
+        BeatHeartBluetoothController.registerCallback(this);
         searchingBar = (ProgressBar) findViewById(R.id.main_progress);
-        scanDevice();
+        ScanCallback scanCallback = new ScanCallback() {
+            @Override
+            public void onScanResult(int callbackType, ScanResult result) {
+                super.onScanResult(callbackType, result);
+                handleBluetoothResult(result);
+            }
+
+            @Override
+            public void onScanFailed(int errorCode) {
+                super.onScanFailed(errorCode);
+                BeatHeartBluetoothController.getInstance().stopScan();
+                searchingBar.setProgress(0);
+                searchingBar.setVisibility(View.INVISIBLE);
+            }
+        };
+        beatHeartBluetoothController.startScan(scanCallback);
     }
 
 
@@ -93,16 +99,6 @@ public class MainActivity extends AppCompatActivity implements CallbackAble<Inte
         listView.setAdapter(adapter);
     }
 
-    /**
-     * Connects a selected Myo and continues to the next view
-     *
-     */
-    private void connectAndContinue(BluetoothDevice device) {
-        NiniGattCallback niniGattCallback = new NiniGattCallback(this, device.getAddress());
-        BluetoothGatt bluetoothGatt = device.connectGatt(this, false, niniGattCallback);
-        niniGattCallback.setBluetoothGatt(bluetoothGatt);
-    }
-
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
 //         Inflate the menu; this adds items to the action bar if it is present.
@@ -114,7 +110,7 @@ public class MainActivity extends AppCompatActivity implements CallbackAble<Inte
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.action_rescan:
-                scanDevice();
+//                scanDevice();
                 return true;
             case android.R.id.home:
                 android.os.Process.killProcess(android.os.Process.myPid());
@@ -149,46 +145,6 @@ public class MainActivity extends AppCompatActivity implements CallbackAble<Inte
     }
 
     /**
-     * Scans for new Bluetooth devices.
-     */
-    public void scanDevice() {
-        // Ensures Bluetooth is available on the device and it is enabled. If not,
-        // displays a dialog requesting user permission to enable Bluetooth.
-        if (bluetoothAdapter == null || !bluetoothAdapter.isEnabled()) {
-            Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-            startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
-        } else {
-            clearItems();
-            scanCallback = new ScanCallback() {
-                @Override
-                public void onScanResult(int callbackType, ScanResult result) {
-                    super.onScanResult(callbackType, result);
-                    handleBluetoothResult(result);
-                }
-
-                @Override
-                public void onScanFailed(int errorCode) {
-                    super.onScanFailed(errorCode);
-                    bluetoothAdapter.getBluetoothLeScanner().stopScan(this);
-                    searchingBar.setProgress(0);
-                    searchingBar.setVisibility(View.INVISIBLE);
-                }
-            };
-            bluetoothScanHandler.postDelayed(new Runnable() {
-                @Override
-                public void run() {
-                    bluetoothAdapter.getBluetoothLeScanner().stopScan(scanCallback);
-                    searchingBar.setProgress(0);
-                    searchingBar.setVisibility(View.INVISIBLE);
-                }
-            }, SCAN_PERIOD);
-            bluetoothAdapter.getBluetoothLeScanner().startScan(scanCallback);
-            searchingBar.setProgress(50);
-            searchingBar.setVisibility(View.VISIBLE);
-        }
-    }
-
-    /**
      * Handles the result of the bluetooth search.
      *
      * @param scanResult The {@link ScanResult} of the bluetooth search.
@@ -204,7 +160,7 @@ public class MainActivity extends AppCompatActivity implements CallbackAble<Inte
         if (device.getName() != null && !knownAddresses.contains(device.getAddress()) && device.getName().equals("weixin-nini")) {
             knownAddresses.add(device.getAddress());
             addItems(device.getName(), device.getAddress(), device, scanResult.getScanRecord());
-            connectAndContinue(device);
+            beatHeartBluetoothController.connectDevice(device);
         }
     }
 
@@ -213,10 +169,13 @@ public class MainActivity extends AppCompatActivity implements CallbackAble<Inte
     }
 
     @Override
-    public void callback(Integer value, String id) {
-        // Check if the user presses the ball to determine if it should be connected
-        Intent i = new Intent(getApplicationContext(), BeatHeartPlayerActivity.class);
-        startActivity(i);
+    public void callback(Integer value, String mac) {
+        if(beatHeartBluetoothController.setSelectedBall(mac)) {
+            BeatHeartBluetoothController.unregisterCallback(this);
+            // Check if the user presses the ball to determine if it should be connected
+            Intent i = new Intent(getApplicationContext(), BeatHeartPlayerActivity.class);
+            startActivity(i);
+        }
     }
 
 }

@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 
+import com.ceg.med.beatheartfactory.controller.BeatHeartBluetoothController;
 import com.ceg.med.beatheartfactory.data.CallbackAble;
 import com.ceg.med.beatheartfactory.data.NiniGattCallback;
 import com.unity3d.player.UnityPlayer;
@@ -28,7 +29,7 @@ public class BeatHeartPlayerActivity extends UnityPlayerActivity implements Call
         currentActivity = this;
         Intent intent = getIntent();
         try {
-            NiniGattCallback.set(this);
+            BeatHeartBluetoothController.registerCallback(this);
         } catch (Exception ex) {
             Log.d(BEATH_HEART_FACTORY_LOG_TAG, ex.toString());
         }

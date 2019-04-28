@@ -8,6 +8,8 @@ import android.bluetooth.BluetoothGattService;
 import android.bluetooth.BluetoothProfile;
 import android.util.Log;
 
+import com.ceg.med.beatheartfactory.controller.BeatHeartBluetoothController;
+
 import java.util.LinkedList;
 import java.util.Queue;
 import java.util.UUID;
@@ -83,11 +85,11 @@ public class NiniGattCallback extends BluetoothGattCallback {
         //String value = String.format("%d %d %d %d",emg_data[2],emg_data[3],emg_data[4],emg_data[5]);
         int val;
 
-        val = (emg_data[3] - 40)*100 + (emg_data[4]-40)*10 + (emg_data[5]-40) - 868;
-        if(emg_data[5] == 46){
-           val = val + 909;
+        val = (emg_data[3] - 40) * 100 + (emg_data[4] - 40) * 10 + (emg_data[5] - 40) - 868;
+        if (emg_data[5] == 46) {
+            val = val + 909;
         }
-        val = (int)((val/1700.0f) * 100.0f);
+        val = (int) ((val / 1700.0f) * 100.0f);
         val = val > 100 ? 100 : val < 5.5 ? 0 : val;
         System.out.println(val);
         callbackAble.callback(val, id);

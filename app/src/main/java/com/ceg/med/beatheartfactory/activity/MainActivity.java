@@ -173,6 +173,7 @@ public class MainActivity extends AppCompatActivity implements CallbackAble<Inte
         if(beatHeartBluetoothController.setSelectedBall(mac)) {
             BeatHeartBluetoothController.unregisterCallback(this);
             // Check if the user presses the ball to determine if it should be connected
+            beatHeartBluetoothController.stopScan();
             Intent i = new Intent(getApplicationContext(), BeatHeartPlayerActivity.class);
             startActivity(i);
         }

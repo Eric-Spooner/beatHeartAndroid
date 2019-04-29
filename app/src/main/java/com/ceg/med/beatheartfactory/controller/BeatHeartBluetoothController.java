@@ -7,10 +7,7 @@ import android.bluetooth.BluetoothManager;
 import android.bluetooth.le.ScanCallback;
 import android.bluetooth.le.ScanResult;
 import android.content.Context;
-import android.content.Intent;
-import android.os.Handler;
-import android.support.annotation.Nullable;
-import android.view.View;
+import android.util.Log;
 
 import com.ceg.med.beatheartfactory.data.CallbackAble;
 import com.ceg.med.beatheartfactory.data.NiniGattCallback;
@@ -19,7 +16,8 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
+
+import static com.ceg.med.beatheartfactory.activity.MainActivity.BEATH_HEART_FACTORY_LOG_TAG;
 
 public class BeatHeartBluetoothController implements CallbackAble<Integer, String> {
 
@@ -28,8 +26,9 @@ public class BeatHeartBluetoothController implements CallbackAble<Integer, Strin
 
     private static BeatHeartBluetoothController instance;
 
-    private Map<String, BluetoothGatt> connectedDevices;
-    private String selectedBall;
+    private static CallbackAble<Integer, String> rescanCallback;
+    private static Map<String, BluetoothGatt> connectedDevices;
+    private static String selectedBall;
     private static List<CallbackAble<Integer, String>> callbacks;
 
     //Bluetooth Specific Handlers
@@ -37,43 +36,103 @@ public class BeatHeartBluetoothController implements CallbackAble<Integer, Strin
     private ScanCallback scanCallback;
     private Context context;
 
+    private static final Object synchron = new Object();
+
     public BeatHeartBluetoothController(BluetoothManager bleMng, Context context) {
         connectedDevices = new HashMap<>();
         selectedBall = null;
         callbacks = new LinkedList<>();
         bluetoothAdapter = bleMng.getAdapter();
         this.context = context;
+        instance = this;
     }
 
     public static BeatHeartBluetoothController getInstance() {
-       return instance;
+        return instance;
     }
 
     public void connectDevice(BluetoothDevice device) {
         if (!connectedDevices.containsKey(device.getAddress())) {
             NiniGattCallback niniGattCallback = new NiniGattCallback(this, device.getAddress());
-            BluetoothGatt bluetoothGatt = device.connectGatt(context, true, niniGattCallback);
+            BluetoothGatt bluetoothGatt = device.connectGatt(context, false, niniGattCallback);
             niniGattCallback.setBluetoothGatt(bluetoothGatt);
-            connectedDevices.put(device.getAddress(),bluetoothGatt);
+            connectedDevices.put(device.getAddress(), bluetoothGatt);
         }
     }
 
     public boolean setSelectedBall(String mac) {
-        if(connectedDevices.containsKey(mac)) {
-            selectedBall = mac;
-            //Disconnect all other devices
-            for (Map.Entry<String, BluetoothGatt> entry : connectedDevices.entrySet()) {
-                if (!entry.getKey().equals(mac)) {
-                    entry.getValue().disconnect();
-                    connectedDevices.remove(entry.getKey());
+        synchronized (synchron) {
+            if (connectedDevices.containsKey(mac)) {
+                selectedBall = mac;
+                //Disconnect all other devices
+                for (Map.Entry<String, BluetoothGatt> entry : connectedDevices.entrySet()) {
+                    if (!entry.getKey().equals(mac)) {
+                        entry.getValue().disconnect();
+                        connectedDevices.remove(entry.getKey());
+                    }
                 }
+
+                if (rescanCallback != null) {
+                    BeatHeartBluetoothController.unregisterCallback(rescanCallback);
+                }
+                return true;
             }
-            return true;
+            return false;
         }
-        return false;
     }
 
-    public void startScan(ScanCallback callback){
+    /**
+     * Starts a rescan, if the selected ball is disconnected (either because of inactivity or no battery)
+     *
+     * @param mac Address of the device disconnected
+     */
+    public void startRescan(String mac) {
+        synchronized (synchron) {
+            if (mac.equals(selectedBall)) {
+                connectedDevices.get(mac).disconnect();
+                connectedDevices.remove(mac);
+                selectedBall = null;
+                Log.d(BEATH_HEART_FACTORY_LOG_TAG, "Start RESCAN");
+                rescanCallback = new CallbackAble<Integer, String>() {
+                    @Override
+                    public void callback(Integer value, String id) {
+                        BeatHeartBluetoothController.getInstance().setSelectedBall(id);
+                    }
+                };
+
+                ScanCallback scanCallback = new ScanCallback() {
+                    @Override
+                    public void onScanResult(int callbackType, ScanResult result) {
+                        super.onScanResult(callbackType, result);
+                        handleBluetoothResult(result);
+                    }
+
+                    @Override
+                    public void onScanFailed(int errorCode) {
+                        super.onScanFailed(errorCode);
+                        BeatHeartBluetoothController.getInstance().stopScan();
+                    }
+                };
+                bluetoothAdapter.getBluetoothLeScanner().startScan(scanCallback);
+            }
+        }
+    }
+
+    /**
+     * Handles the result of the bluetooth search.
+     *
+     * @param scanResult The {@link ScanResult} of the bluetooth search.
+     */
+    private void handleBluetoothResult(ScanResult scanResult) {
+        synchronized (synchron) {
+            BluetoothDevice device = scanResult.getDevice();
+            if (device.getName() != null && device.getName().equals("weixin-nini")) {
+                this.connectDevice(device);
+            }
+        }
+    }
+
+    public void startScan(ScanCallback callback) {
         this.scanCallback = callback;
         bluetoothAdapter.getBluetoothLeScanner().startScan(callback);
         // Stop Scanning after some time
@@ -87,16 +146,22 @@ public class BeatHeartBluetoothController implements CallbackAble<Integer, Strin
 */
     }
 
-    public void stopScan(){
+    public void stopScan() {
         bluetoothAdapter.getBluetoothLeScanner().stopScan(scanCallback);
     }
 
     public static void registerCallback(CallbackAble<Integer, String> callbackAble) {
-        callbacks.add(callbackAble);
+        synchronized (synchron) {
+            if (!callbacks.contains(callbackAble)) {
+                callbacks.add(callbackAble);
+            }
+        }
     }
 
-    public static void unregisterCallback(CallbackAble<Integer, String> callbackAble){
-        callbacks.remove(callbackAble);
+    public static void unregisterCallback(CallbackAble<Integer, String> callbackAble) {
+        synchronized (synchron) {
+            callbacks.remove(callbackAble);
+        }
     }
 
     @Override

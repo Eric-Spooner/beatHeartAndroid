@@ -48,7 +48,12 @@ public class NiniGattCallback extends BluetoothGattCallback {
             gatt.discoverServices();
         } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
             // GATT Disconnected
+            gatt.disconnect();
+            gatt.close();
             Log.d(BEATH_HEART_FACTORY_LOG_TAG, "Bluetooth Disconnected");
+            if(BeatHeartBluetoothController.getInstance() != null){
+                BeatHeartBluetoothController.getInstance().startRescan(id);
+            }
         }
     }
 

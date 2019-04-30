@@ -45,6 +45,7 @@ public class NiniGattCallback extends BluetoothGattCallback {
         if (newState == BluetoothProfile.STATE_CONNECTED) {
             // GATT Connected
             // Searching GATT Service
+            Log.d(BEATH_HEART_FACTORY_LOG_TAG, "Bluetooth Connected");
             gatt.discoverServices();
         } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
             // GATT Disconnected
@@ -96,7 +97,7 @@ public class NiniGattCallback extends BluetoothGattCallback {
         }
         val = (int) ((val / 1700.0f) * 100.0f);
         val = val > 100 ? 100 : val < 5.5 ? 0 : val;
-        System.out.println(val);
+      //  System.out.println(val);
         callbackAble.callback(val, id);
     }
 

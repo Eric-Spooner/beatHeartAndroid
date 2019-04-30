@@ -130,6 +130,7 @@ public class BeatHeartBluetoothController implements CallbackAble<Integer, Strin
         synchronized (synchron) {
             BluetoothDevice device = scanResult.getDevice();
             if (device.getName() != null && device.getName().equals("weixin-nini")) {
+                Log.d(BEATH_HEART_FACTORY_LOG_TAG, "RESCAN found device" + device.getName());
                 this.connectDevice(device);
             }
         }

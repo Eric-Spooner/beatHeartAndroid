@@ -37,6 +37,7 @@ public class BeatHeartPlayerActivity extends UnityPlayerActivity implements Call
 
     @Unity
     public void startGame(String jsonUnity) {
+        Log.d(BEATH_HEART_FACTORY_LOG_TAG, "unity started");
     }
 
     @Override
@@ -46,7 +47,7 @@ public class BeatHeartPlayerActivity extends UnityPlayerActivity implements Call
         //use a max val of 70
         //int normVal = ((int) ((float) value / DetailActivity.maxVal * 100));
         int normVal = ((int) ((float) value / 70 * 100));
-        if (normVal < 30) {
+        if (normVal < 5) {
             active = 0;
             sendValue(0);
         } else if (active < 5 && normVal > 30) {

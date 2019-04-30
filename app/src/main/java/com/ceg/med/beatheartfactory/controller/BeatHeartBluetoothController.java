@@ -26,7 +26,7 @@ public class BeatHeartBluetoothController implements CallbackAble<Integer, Strin
 
     private static BeatHeartBluetoothController instance;
 
-    private static CallbackAble<Integer, String> rescanCallback;
+    private static CallbackAble<Integer, String> rescanValueCallback;
     private static Map<String, BluetoothGatt> connectedDevices;
     private static String selectedBall;
     private static List<CallbackAble<Integer, String>> callbacks;
@@ -34,6 +34,7 @@ public class BeatHeartBluetoothController implements CallbackAble<Integer, Strin
     //Bluetooth Specific Handlers
     private BluetoothAdapter bluetoothAdapter;
     private ScanCallback scanCallback;
+    private ScanCallback rescanCallback;
     private Context context;
 
     private static final Object synchron = new Object();
@@ -68,13 +69,15 @@ public class BeatHeartBluetoothController implements CallbackAble<Integer, Strin
                 for (Map.Entry<String, BluetoothGatt> entry : connectedDevices.entrySet()) {
                     if (!entry.getKey().equals(mac)) {
                         entry.getValue().disconnect();
-                        connectedDevices.remove(entry.getKey());
                     }
                 }
-
+                HashMap<String, BluetoothGatt> newMap = new HashMap<>();
+                newMap.put(mac, connectedDevices.get(mac));
+                connectedDevices = newMap;
                 if (rescanCallback != null) {
-                    BeatHeartBluetoothController.unregisterCallback(rescanCallback);
+                    BeatHeartBluetoothController.unregisterCallback(rescanValueCallback);
                 }
+                BeatHeartBluetoothController.getInstance().stopScan();
                 return true;
             }
             return false;
@@ -93,14 +96,14 @@ public class BeatHeartBluetoothController implements CallbackAble<Integer, Strin
                 connectedDevices.remove(mac);
                 selectedBall = null;
                 Log.d(BEATH_HEART_FACTORY_LOG_TAG, "Start RESCAN");
-                rescanCallback = new CallbackAble<Integer, String>() {
+                rescanValueCallback = new CallbackAble<Integer, String>() {
                     @Override
                     public void callback(Integer value, String id) {
                         BeatHeartBluetoothController.getInstance().setSelectedBall(id);
                     }
                 };
-
-                ScanCallback scanCallback = new ScanCallback() {
+                registerCallback(rescanValueCallback);
+                rescanCallback = new ScanCallback() {
                     @Override
                     public void onScanResult(int callbackType, ScanResult result) {
                         super.onScanResult(callbackType, result);
@@ -113,7 +116,7 @@ public class BeatHeartBluetoothController implements CallbackAble<Integer, Strin
                         BeatHeartBluetoothController.getInstance().stopScan();
                     }
                 };
-                bluetoothAdapter.getBluetoothLeScanner().startScan(scanCallback);
+                bluetoothAdapter.getBluetoothLeScanner().startScan(rescanCallback);
             }
         }
     }
@@ -148,6 +151,10 @@ public class BeatHeartBluetoothController implements CallbackAble<Integer, Strin
 
     public void stopScan() {
         bluetoothAdapter.getBluetoothLeScanner().stopScan(scanCallback);
+        if(rescanCallback != null){
+            bluetoothAdapter.getBluetoothLeScanner().stopScan(rescanCallback);
+        }
+
     }
 
     public static void registerCallback(CallbackAble<Integer, String> callbackAble) {
